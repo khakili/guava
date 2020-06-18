@@ -18,6 +18,9 @@ import com.google.common.annotations.Beta;
 import java.util.concurrent.Executor;
 
 /**
+ * 异步EventBus,EventBus的子类，可以异步消费Event，
+ * AsyncEventBus本身没有任何特殊的能力，
+ * 唯一比EventBus多的一点是可以自定义Executor
  * An {@link EventBus} that takes the Executor of your choice and uses it to dispatch events,
  * allowing dispatch to occur asynchronously.
  *

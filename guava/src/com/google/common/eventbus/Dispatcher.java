@@ -69,11 +69,15 @@ abstract class Dispatcher {
   /** Dispatches the given {@code event} to the given {@code subscribers}. */
   abstract void dispatch(Object event, Iterator<Subscriber> subscribers);
 
+  /**
+   * 使用线程隔离的方式分发事件
+   */
   /** Implementation of a {@link #perThreadDispatchQueue()} dispatcher. */
   private static final class PerThreadQueuedDispatcher extends Dispatcher {
 
     // This dispatcher matches the original dispatch behavior of EventBus.
 
+    //维护当前线程的时间队列
     /** Per-thread queue of events to dispatch. */
     private final ThreadLocal<Queue<Event>> queue =
         new ThreadLocal<Queue<Event>>() {
@@ -83,6 +87,7 @@ abstract class Dispatcher {
           }
         };
 
+    //当前线程是否正在分发事件
     /** Per-thread dispatch state, used to avoid reentrant event dispatching. */
     private final ThreadLocal<Boolean> dispatching =
         new ThreadLocal<Boolean>() {
@@ -94,21 +99,27 @@ abstract class Dispatcher {
 
     @Override
     void dispatch(Object event, Iterator<Subscriber> subscribers) {
+      //校验非空
       checkNotNull(event);
       checkNotNull(subscribers);
+      //获取当前线程的队列
       Queue<Event> queueForThread = queue.get();
+      //入队一个事件
       queueForThread.offer(new Event(event, subscribers));
 
       if (!dispatching.get()) {
+        //当前线程未在分发
         dispatching.set(true);
         try {
           Event nextEvent;
+          //循环获取事件并广播
           while ((nextEvent = queueForThread.poll()) != null) {
             while (nextEvent.subscribers.hasNext()) {
               nextEvent.subscribers.next().dispatchEvent(nextEvent.event);
             }
           }
         } finally {
+          //释放资源
           dispatching.remove();
           queue.remove();
         }
@@ -148,17 +159,20 @@ abstract class Dispatcher {
     // in some cases.
 
     /** Global event queue. */
+    //全局无界队列
     private final ConcurrentLinkedQueue<EventWithSubscriber> queue =
         Queues.newConcurrentLinkedQueue();
 
     @Override
     void dispatch(Object event, Iterator<Subscriber> subscribers) {
       checkNotNull(event);
+      //循环消费者，将时间和消费者构造为EventWithSubscriber，加入队列
       while (subscribers.hasNext()) {
         queue.add(new EventWithSubscriber(event, subscribers.next()));
       }
 
       EventWithSubscriber e;
+      //
       while ((e = queue.poll()) != null) {
         e.subscriber.dispatchEvent(e.event);
       }

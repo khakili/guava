@@ -92,16 +92,20 @@ import java.util.logging.Logger;
  * @author Cliff Biffle
  * @since 10.0
  */
+//EventBus核心类
 @Beta
 public class EventBus {
 
   private static final Logger logger = Logger.getLogger(EventBus.class.getName());
-
+  //打印日志使用的标记（名字）
   private final String identifier;
+  //执行器，消费事件
   private final Executor executor;
+  //异常处理器，如果消费事件异常时，通过handleException方法消费异常
   private final SubscriberExceptionHandler exceptionHandler;
-
+  //EventBus观察者注册对象，所有事件都会注册到这个对象中
   private final SubscriberRegistry subscribers = new SubscriberRegistry(this);
+  //分发器，EventBus中为同步分发
   private final Dispatcher dispatcher;
 
   /** Creates a new EventBus named "default". */
@@ -118,8 +122,11 @@ public class EventBus {
   public EventBus(String identifier) {
     this(
         identifier,
+        //默认为同步执行器，直接调用java.lang.Runnable.run
         MoreExecutors.directExecutor(),
+        //单线程消费事件
         Dispatcher.perThreadDispatchQueue(),
+        //默认打印异常
         LoggingHandler.INSTANCE);
   }
 
@@ -136,7 +143,7 @@ public class EventBus {
         Dispatcher.perThreadDispatchQueue(),
         exceptionHandler);
   }
-
+  //AsyncEventBus使用这个构造函数初始化
   EventBus(
       String identifier,
       Executor executor,
@@ -178,6 +185,7 @@ public class EventBus {
   }
 
   /**
+   * 注册对象到观察者
    * Registers all subscriber methods on {@code object} to receive events.
    *
    * @param object object whose subscriber methods should be registered.
@@ -187,6 +195,7 @@ public class EventBus {
   }
 
   /**
+   * 将对象从观察者中卸载
    * Unregisters all subscriber methods on a registered {@code object}.
    *
    * @param object object whose subscriber methods should be unregistered.
@@ -197,6 +206,7 @@ public class EventBus {
   }
 
   /**
+   * 发送事件
    * Posts an event to all registered subscribers. This method will return successfully after the
    * event has been posted to all subscribers, and regardless of any exceptions thrown by
    * subscribers.
@@ -207,11 +217,15 @@ public class EventBus {
    * @param event event to post.
    */
   public void post(Object event) {
+    //获取消费者集合
     Iterator<Subscriber> eventSubscribers = subscribers.getSubscribers(event);
     if (eventSubscribers.hasNext()) {
+      //通过分发器消费事件
       dispatcher.dispatch(event, eventSubscribers);
     } else if (!(event instanceof DeadEvent)) {
       // the event had no subscribers and was not itself a DeadEvent
+      //如果事件没有消费者且事件不是DeadEvent，
+      // 则构造DeadEvent递归将该事件消费掉
       post(new DeadEvent(this, event));
     }
   }

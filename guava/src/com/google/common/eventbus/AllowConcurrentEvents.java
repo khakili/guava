@@ -29,6 +29,8 @@ import java.lang.annotation.Target;
  * @author Cliff Biffle
  * @since 10.0
  */
+//并发标记，添加该注解可以使事件并发消费，
+// 见com.google.common.eventbus.Subscriber.isDeclaredThreadSafe
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Beta

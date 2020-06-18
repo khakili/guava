@@ -28,6 +28,7 @@ import com.google.common.base.MoreObjects;
  * @author Cliff Biffle
  * @since 10.0
  */
+//没有消费者的事件包装类，成为这个包装类后事件会被丢弃
 @Beta
 public class DeadEvent {
 
