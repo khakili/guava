@@ -172,7 +172,7 @@ abstract class Dispatcher {
       }
 
       EventWithSubscriber e;
-      //
+      //循环发送事件
       while ((e = queue.poll()) != null) {
         e.subscriber.dispatchEvent(e.event);
       }

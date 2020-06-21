@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
  *
  * @since 16.0
  */
+//订阅者异常上下文，维护了异常发生的方法，订阅者等信息
 public class SubscriberExceptionContext {
   private final EventBus eventBus;
   private final Object event;

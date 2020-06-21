@@ -103,7 +103,7 @@ public class EventBus {
   private final Executor executor;
   //异常处理器，如果消费事件异常时，通过handleException方法消费异常
   private final SubscriberExceptionHandler exceptionHandler;
-  //EventBus观察者注册对象，所有事件都会注册到这个对象中
+  //EventBus订阅注册对象，所有事件都会注册到这个对象中
   private final SubscriberRegistry subscribers = new SubscriberRegistry(this);
   //分发器，EventBus中为同步分发
   private final Dispatcher dispatcher;
@@ -195,7 +195,7 @@ public class EventBus {
   }
 
   /**
-   * 将对象从观察者中卸载
+   * 将对象从订阅列表中卸载
    * Unregisters all subscriber methods on a registered {@code object}.
    *
    * @param object object whose subscriber methods should be unregistered.

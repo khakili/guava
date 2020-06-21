@@ -51,6 +51,7 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Colin Decker
  */
+//订阅者注册类
 final class SubscriberRegistry {
 
   /**
@@ -59,20 +60,23 @@ final class SubscriberRegistry {
    * <p>The {@link CopyOnWriteArraySet} values make it easy and relatively lightweight to get an
    * immutable snapshot of all current subscribers to an event without any locking.
    */
+  //订阅者集合，维护注册所有订阅者，支持并发，Key为订阅者Class，Value为订阅者集合
   private final ConcurrentMap<Class<?>, CopyOnWriteArraySet<Subscriber>> subscribers =
       Maps.newConcurrentMap();
 
   /** The event bus this registry belongs to. */
+  //订阅者注册到的EventBus
   @Weak private final EventBus bus;
 
   SubscriberRegistry(EventBus bus) {
     this.bus = checkNotNull(bus);
   }
-
+  //注册订阅者
   /** Registers all subscriber methods on the given listener object. */
   void register(Object listener) {
+    //1.找到所有订阅者的集合
     Multimap<Class<?>, Subscriber> listenerMethods = findAllSubscribers(listener);
-
+    //2.循环订阅者集合，注册事件
     for (Entry<Class<?>, Collection<Subscriber>> entry : listenerMethods.asMap().entrySet()) {
       Class<?> eventType = entry.getKey();
       Collection<Subscriber> eventMethodsInListener = entry.getValue();
@@ -90,6 +94,7 @@ final class SubscriberRegistry {
   }
 
   /** Unregisters all subscribers on the given listener object. */
+  //卸载订阅者
   void unregister(Object listener) {
     Multimap<Class<?>, Subscriber> listenerMethods = findAllSubscribers(listener);
 
@@ -98,6 +103,7 @@ final class SubscriberRegistry {
       Collection<Subscriber> listenerMethodsForType = entry.getValue();
 
       CopyOnWriteArraySet<Subscriber> currentSubscribers = subscribers.get(eventType);
+      //如果没有注册过，会抛异常
       if (currentSubscribers == null || !currentSubscribers.removeAll(listenerMethodsForType)) {
         // if removeAll returns true, all we really know is that at least one subscriber was
         // removed... however, barring something very strange we can assume that if at least one
@@ -111,7 +117,7 @@ final class SubscriberRegistry {
       // anyway, if the set is empty it'll just be wrapping an array of length 0
     }
   }
-
+  //测试用方法
   @VisibleForTesting
   Set<Subscriber> getSubscribersForTesting(Class<?> eventType) {
     return MoreObjects.firstNonNull(subscribers.get(eventType), ImmutableSet.<Subscriber>of());
@@ -121,6 +127,7 @@ final class SubscriberRegistry {
    * Gets an iterator representing an immutable snapshot of all subscribers to the given event at
    * the time this method is called.
    */
+  //使用事件类型获取所有订阅者
   Iterator<Subscriber> getSubscribers(Object event) {
     ImmutableSet<Class<?>> eventTypes = flattenHierarchy(event.getClass());
 
@@ -144,6 +151,7 @@ final class SubscriberRegistry {
    * instances of this class; this greatly improves performance if multiple EventBus instances are
    * created and objects of the same class are registered on all of them.
    */
+  //使用guava cache 缓存类的订阅者方法集合
   private static final LoadingCache<Class<?>, ImmutableList<Method>> subscriberMethodsCache =
       CacheBuilder.newBuilder()
           .weakKeys()
@@ -158,6 +166,7 @@ final class SubscriberRegistry {
   /**
    * Returns all subscribers for the given listener grouped by the type of event they subscribe to.
    */
+  //获取订阅者对象中所有订阅方法
   private Multimap<Class<?>, Subscriber> findAllSubscribers(Object listener) {
     Multimap<Class<?>, Subscriber> methodsInListener = HashMultimap.create();
     Class<?> clazz = listener.getClass();
@@ -168,11 +177,11 @@ final class SubscriberRegistry {
     }
     return methodsInListener;
   }
-
+  //从guava cahce获取指定类的所有订阅方法
   private static ImmutableList<Method> getAnnotatedMethods(Class<?> clazz) {
     return subscriberMethodsCache.getUnchecked(clazz);
   }
-
+  //不经过guava cache获取订阅方法（提供给guava cache使用）
   private static ImmutableList<Method> getAnnotatedMethodsNotCached(Class<?> clazz) {
     Set<? extends Class<?>> supertypes = TypeToken.of(clazz).getTypes().rawTypes();
     Map<MethodIdentifier, Method> identifiers = Maps.newHashMap();
@@ -197,7 +206,6 @@ final class SubscriberRegistry {
     }
     return ImmutableList.copyOf(identifiers.values());
   }
-
   /** Global cache of classes to their flattened hierarchy of supertypes. */
   private static final LoadingCache<Class<?>, ImmutableSet<Class<?>>> flattenHierarchyCache =
       CacheBuilder.newBuilder()
@@ -217,6 +225,7 @@ final class SubscriberRegistry {
    * Flattens a class's type hierarchy into a set of {@code Class} objects including all
    * superclasses (transitively) and all interfaces implemented by these superclasses.
    */
+  //获取所有event对应的订阅者对象
   @VisibleForTesting
   static ImmutableSet<Class<?>> flattenHierarchy(Class<?> concreteClass) {
     try {

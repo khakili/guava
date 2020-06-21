@@ -19,6 +19,7 @@ package com.google.common.eventbus;
  *
  * @since 16.0
  */
+//处理异常接口
 public interface SubscriberExceptionHandler {
   /** Handles exceptions thrown by subscribers. */
   void handleException(Throwable exception, SubscriberExceptionContext context);

@@ -32,8 +32,12 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  *
  * @author Colin Decker
  */
+//订阅者对象
 class Subscriber {
-
+  /**
+   * 创建一个订阅者，如果有并发标记（AllowConcurrentEvents），
+   * 则创建一个非同步的订阅者，否则创建一个以synchronized同步的订阅者对象
+   */
   /** Creates a {@code Subscriber} for {@code method} on {@code listener}. */
   static Subscriber create(EventBus bus, Object listener, Method method) {
     return isDeclaredThreadSafe(method)
@@ -42,15 +46,19 @@ class Subscriber {
   }
 
   /** The event bus this subscriber belongs to. */
+  //订阅者持有EventBus对象
   @Weak private EventBus bus;
 
   /** The object with the subscriber method. */
+  //订阅者实例
   @VisibleForTesting final Object target;
 
   /** Subscriber method. */
+  //订阅者的消费方法
   private final Method method;
 
   /** Executor to use for dispatching events to this subscriber. */
+  //消费事件的执行器
   private final Executor executor;
 
   private Subscriber(EventBus bus, Object target, Method method) {
@@ -63,6 +71,8 @@ class Subscriber {
   }
 
   /** Dispatches {@code event} to this subscriber using the proper executor. */
+  //执行器消费事件，执行中异常会被EventBus中的
+  // SubscriberExceptionHandler消费
   final void dispatchEvent(final Object event) {
     executor.execute(
         new Runnable() {
@@ -82,6 +92,8 @@ class Subscriber {
    * synchronized.
    */
   @VisibleForTesting
+  //订阅者消费事件的真正方法（反射执行），如果没有AllowConcurrentEvents，
+  //则添加synchronized执行
   void invokeSubscriberMethod(Object event) throws InvocationTargetException {
     try {
       method.invoke(target, checkNotNull(event));
@@ -123,6 +135,7 @@ class Subscriber {
    * Checks whether {@code method} is thread-safe, as indicated by the presence of the {@link
    * AllowConcurrentEvents} annotation.
    */
+  //判断是否为可以并发的事件
   private static boolean isDeclaredThreadSafe(Method method) {
     return method.getAnnotation(AllowConcurrentEvents.class) != null;
   }
@@ -132,6 +145,7 @@ class Subscriber {
    * the method at a time.
    */
   @VisibleForTesting
+  //同步订阅者，同步（synchronized）消费事件
   static final class SynchronizedSubscriber extends Subscriber {
 
     private SynchronizedSubscriber(EventBus bus, Object target, Method method) {

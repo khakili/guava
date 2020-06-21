@@ -33,6 +33,7 @@ import java.lang.annotation.Target;
  * @author Cliff Biffle
  * @since 10.0
  */
+//订阅事件注解
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Beta
