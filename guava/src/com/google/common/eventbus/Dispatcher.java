@@ -108,7 +108,7 @@ abstract class Dispatcher {
       queueForThread.offer(new Event(event, subscribers));
 
       if (!dispatching.get()) {
-        //当前线程未在分发
+        //当前线程未在分发，并设置分发标志位True
         dispatching.set(true);
         try {
           Event nextEvent;
@@ -166,7 +166,7 @@ abstract class Dispatcher {
     @Override
     void dispatch(Object event, Iterator<Subscriber> subscribers) {
       checkNotNull(event);
-      //循环消费者，将时间和消费者构造为EventWithSubscriber，加入队列
+      //循环消费者，将事件和消费者构造为EventWithSubscriber，加入队列
       while (subscribers.hasNext()) {
         queue.add(new EventWithSubscriber(event, subscribers.next()));
       }
