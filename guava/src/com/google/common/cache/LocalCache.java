@@ -134,12 +134,15 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
    * constructors with arguments. MUST be a power of two {@code <= 1<<30} to ensure that entries are
    * indexable using ints.
    */
+  //缓存最大容量
   static final int MAXIMUM_CAPACITY = 1 << 30;
 
   /** The maximum number of segments to allow; used to bound constructor arguments. */
+  //缓存槽最大数量
   static final int MAX_SEGMENTS = 1 << 16; // slightly conservative
 
   /** Number of (unsynchronized) retries in the containsValue method. */
+  //containsValue方法中循环查询值是否存在的次数
   static final int CONTAINS_VALUE_RETRIES = 3;
 
   /**
@@ -149,6 +152,7 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
    *
    * <p>This must be a (2^n)-1 as it is used as a mask.
    */
+  //十六进制的63，用于触发清理动作，在读第64次的时候触发
   static final int DRAIN_THRESHOLD = 0x3F;
 
   /**
@@ -156,6 +160,7 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
    * the cleanup queue and both reference queues.
    */
   // TODO(fry): empirically optimize this
+  // key/value的最大清理次数
   static final int DRAIN_MAX = 16;
 
   // Fields
