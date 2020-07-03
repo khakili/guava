@@ -198,24 +198,31 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
   final Equivalence<Object> valueEquivalence;
 
   /** Strategy for referencing keys. */
+  //key引用类型，默认是STRONG
   final Strength keyStrength;
 
   /** Strategy for referencing values. */
+  //value引用类型，默认为STRONG
   final Strength valueStrength;
 
   /** The maximum weight of this map. UNSET_INT if there is no maximum. */
+  //最大权重，会影响缓存初始化容量等参数，默认-1
   final long maxWeight;
 
   /** Weigher to weigh cache entries. */
+  //权重接口，获取key-value权重
   final Weigher<K, V> weigher;
 
   /** How long after the last access to an entry the map will retain that entry. */
+  //如果entry在expireAfterAccessNanos 后没有被访问则被移除
   final long expireAfterAccessNanos;
 
   /** How long after the last write to an entry the map will retain that entry. */
+  //如果entry在expireAfterWriteNanos 后没有更新则被移除
   final long expireAfterWriteNanos;
 
   /** How long after the last write an entry becomes a candidate for refresh. */
+  //在entry更新后refreshNanos 后则刷新该entry
   final long refreshNanos;
 
   /** Entries waiting to be consumed by the removal listener. */
