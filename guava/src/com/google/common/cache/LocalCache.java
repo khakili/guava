@@ -171,24 +171,30 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
    * Mask value for indexing into segments. The upper bits of a key's hash code are used to choose
    * the segment.
    */
+  //与segmentShift共同控制key落到那个Segment
   final int segmentMask;
 
   /**
    * Shift value for indexing within segments. Helps prevent entries that end up in the same segment
    * from also ending up in the same bucket.
    */
+  //与segmentMask共同控制key落到那个Segment
   final int segmentShift;
 
   /** The segments, each of which is a specialized hash table. */
+  //锁槽，实际控制并发的集合(Segment为重入锁的子类)
   final Segment<K, V>[] segments;
 
   /** The concurrency level. */
+  //并发等级
   final int concurrencyLevel;
 
   /** Strategy for comparing keys. */
+  //key比较策略，根据key不同的回收策略会有不同实现
   final Equivalence<Object> keyEquivalence;
 
   /** Strategy for comparing values. */
+  //value比较策略，根据value不同的回收策略会有不同实现
   final Equivalence<Object> valueEquivalence;
 
   /** Strategy for referencing keys. */
